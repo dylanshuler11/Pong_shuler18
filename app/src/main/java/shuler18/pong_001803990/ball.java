@@ -22,6 +22,47 @@ public class ball {
     private int speedY;
     Paint redPaint;
 
+    public void setBallX(int ballX) {
+        this.ballX = ballX;
+    }
+
+    public void setBallY(int ballY) {
+        this.ballY = ballY;
+    }
+
+    public void setSpeedX(int speedX) {
+        this.speedX = speedX;
+    }
+
+    public void setSpeedY(int speedY) {
+        this.speedY = speedY;
+    }
+
+    public int getBallX() {
+
+        return ballX;
+    }
+
+    public int getBallY() {
+        return ballY;
+    }
+
+    public int getBallRad() {
+        return ballRad;
+    }
+
+    public int getWallWidth() {
+        return wallWidth;
+    }
+
+    public int getSpeedX() {
+        return speedX;
+    }
+
+    public int getSpeedY() {
+        return speedY;
+    }
+
     /**
      * Constructor to create ball object
      * @param x starting x position of ball
@@ -32,6 +73,7 @@ public class ball {
     public ball(int x, int y, int sx, int sy)
     {
         ballX = x;
+
         ballY = y;
         speedX = sx;
         speedY = sy;
@@ -41,71 +83,7 @@ public class ball {
     }
 
 
-    /**
-     * This method is used to adjust the position of the ball when the tick method is called
-     */
-    public void adjustBallPosition()
-    {
-        Random rand = new Random(); //generate random speed changes as the ball bounces
-        int temp = 0;
-        temp = rand.nextInt(6)-10; //range of [-5,5]
 
-
-        ballX += speedX;
-        ballY += speedY;
-
-        //check if the ball has hit the bottom or top wall
-        if(vertWallCollision())
-        {
-            speedY = -speedY + temp;
-            if(speedY > 25)
-            {
-                speedY = 20;
-            }
-        }
-        else if(horzWallCollision())
-        {
-            speedX = -speedX + temp;
-            if(speedX > 25)
-            {
-                speedX = 20;
-            }
-        }
-    }
-
-    /**
-     *
-     * @return true if ball collided with top or bottom wall
-     */
-    private boolean vertWallCollision()
-    {
-        //todo fix ball going way over the top wall, bounces a little after the bottom wall
-
-        //check if there was a collision with the top wall
-        if(ballY-ballRad < wallWidth)
-        {
-            return true;
-        }
-        //check bottom wall
-        else if(ballY+ballRad > height-wallWidth)
-        {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     *
-     * @return
-     */
-    private boolean horzWallCollision()
-    {
-        if(ballX+ballRad >= width-wallWidth)
-        {
-            return true;
-        }
-        return false;
-    }
 
     private boolean gameOver()
     {

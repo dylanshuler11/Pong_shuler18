@@ -13,7 +13,9 @@ import java.util.Random;
 
 public class pongAnimator implements Animator {
 
-    private int paddleY = 250;
+
+    private int paddleHeight = 300;
+    private int paddleY = 1512/2 - paddleHeight/2;//middle position of paddle
     private int ballRad = 30; //radius of ball
     private int wallWidth = 40;
     private ball b;
@@ -21,7 +23,7 @@ public class pongAnimator implements Animator {
     boolean dimmensionsSet = true;
     @Override
     public int interval() {
-        return 30;
+        return 1;
     }
 
     @Override
@@ -51,19 +53,19 @@ public class pongAnimator implements Animator {
             dimmensionsSet = false;
         }
 
-        b.adjustBallPosition();
+        adjustBallPosition(b);
 
         //draw 3 walls
         Paint white = new Paint();
         white.setColor(Color.WHITE);
-        g.drawRect(0,0,g.getWidth(),40,white);
-        g.drawRect(g.getWidth()-40,0,g.getWidth(),g.getHeight(),white);
-        g.drawRect(0,g.getHeight()-40,g.getWidth(),g.getHeight(),white);
+        g.drawRect(0,0,g.getWidth(),wallWidth,white);
+        g.drawRect(g.getWidth()-wallWidth,0,g.getWidth(),g.getHeight(),white);
+        g.drawRect(0,g.getHeight()-wallWidth,g.getWidth(),g.getHeight(),white);
 
         //draw the paddle
         Paint black = new Paint();
         black.setColor(Color.BLACK);
-        g.drawRect(0, paddleY, 60,paddleY-200,black);
+        g.drawRect(0, paddleY+paddleHeight/2, 60,paddleY-paddleHeight/2,black);
 
         // Draw the ball in the correct position.
         b.draw(g);
@@ -94,6 +96,103 @@ public class pongAnimator implements Animator {
 
         //todo figure out a way to get height and width parameters
 
+    }
+
+    /**
+     * This method is used to adjust the position of the ball when the tick method is called
+     */
+    public void adjustBallPosition(ball b)
+    {
+        Random rand = new Random(); //generate random speed changes as the ball bounces
+        int temp = 0;
+        int reduction = rand.nextInt(1)-4;
+        temp = rand.nextInt(6)-10; //range of [-5,5]
+        boolean decrement = rand.nextInt(1) == 0 ? true : false;
+
+        //update position of ball
+        //todo fix setting of height and width in initial loop! 
+        if(b.getBallX() + b.getSpeedX() > width-wallWidth)
+        {
+            b.setBallX(width-wallWidth);
+        }
+        else
+        {
+            b.setBallX(b.getBallX() + b.getSpeedX());
+        }
+        b.setBallY(b.getBallY() + b.getSpeedY());
+
+        //check if the ball has hit the bottom or top wall
+        if(paddleHit(b))
+        {
+            b.setSpeedX(-b.getSpeedX() + reduction);
+
+        }
+        else if(vertWallCollision(b))
+        {
+            b.setSpeedY(-b.getSpeedY() + temp);
+            if(b.getSpeedY() > 25)
+            {
+                b.setSpeedY(20);
+            }
+        }
+        else if(horzWallCollision(b))
+        {
+            b.setSpeedX(-b.getSpeedX() + temp);
+            if(b.getSpeedX() > 25)
+            {
+                b.setSpeedX(20);
+            }
+        }
+    }
+
+    private boolean paddleHit(ball b)
+    {
+
+        if(b.getBallY() >= paddleY-paddleHeight/2 &&
+                b.getBallY() <= paddleY+paddleHeight/2 &&
+                b.getBallX() <= 60+b.getBallRad() &&
+                b.getSpeedX() < 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @return true if ball collided with top or bottom wall
+     */
+    private boolean vertWallCollision(ball b)
+    {
+        //todo fix ball going way over the top wall, bounces a little after the bottom wall
+
+        //check if there was a collision with the top wall
+        if(b.getBallY()-b.getBallRad() < wallWidth && b.getSpeedY() < 0)
+        {
+            return true;
+        }
+        //check bottom wall
+        else if(b.getBallY()+b.getBallRad() > height-wallWidth && b.getSpeedY() > 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
+    private boolean horzWallCollision(ball b)
+    {
+        if(b.getBallX()+ballRad >= width-wallWidth && b.getSpeedX() > 0)
+        {
+            return true;
+        }
+        return false;
     }
 
 
