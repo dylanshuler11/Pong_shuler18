@@ -12,14 +12,14 @@ import java.util.Random;
  * Created by Dylan Shuler on 3/18/2018.
  */
 
-public class pongAnimator implements Animator {
+public class PongAnimator implements Animator {
 
 
-    private ArrayList<ball> balls = new ArrayList<>(); //stores list of all balls
-    private ArrayList<ball> toBeDeleted = new ArrayList<>(); //list of balls to be removed
+    private ArrayList<Ball> Balls = new ArrayList<>(); //stores list of all Balls
+    private ArrayList<Ball> toBeDeleted = new ArrayList<>(); //list of Balls to be removed
     private int paddleHeight = 300; //total height of paddle
     private int paddleY = 1512/2 - paddleHeight/2;//middle position of paddle, starting at midpoint
-    private int ballRad = 30; //radius of ball
+    private int ballRad = 30; //radius of Ball
     private int wallWidth = 40; //width of walls drawn on edges
     private int height, width; //useable dimmensions of the board
 
@@ -62,11 +62,11 @@ public class pongAnimator implements Animator {
 
             drawWalls(g);
 
-            //iterate through each ball in list and update its position and speed
-            for (ball b : balls) {
+            //iterate through each Ball in list and update its position and speed
+            for (Ball b : Balls) {
                 if (b.inPlay) {
-                    b.draw(g); // Draw the ball in the correct position.
-                    adjustBallPosition(b); //move ball
+                    b.draw(g); // Draw the Ball in the correct position.
+                    adjustBallPosition(b); //move Ball
 
                 }
             }
@@ -75,7 +75,7 @@ public class pongAnimator implements Animator {
             External Citation:
             3/21/2018
 
-            Couldn't remove balls from arrayList without causing a concurrentModificationException
+            Couldn't remove Balls from arrayList without causing a concurrentModificationException
             Resource:
             https://stackoverflow.com/questions/10431981/remove-elements-from-collection-while-iterating
 
@@ -83,8 +83,8 @@ public class pongAnimator implements Animator {
             used removeAll method as seen in top answer
 
          */
-            balls.removeAll(toBeDeleted); //remove out of play balls
-            toBeDeleted.clear(); //empty list now that balls are removed
+            Balls.removeAll(toBeDeleted); //remove out of play Balls
+            toBeDeleted.clear(); //empty list now that Balls are removed
 
 
 
@@ -122,24 +122,24 @@ public class pongAnimator implements Animator {
 
 
     /**
-     * This method is called at the start of a game to randomly set the motion of the ball
+     * This method is called at the start of a game to randomly set the motion of the Ball
      */
     public void pongInit()
     {
         height = 1512;
         width = 2560;
         Random r = new Random();
-        balls.add(new ball(r.nextInt(width), r.nextInt(height),r.nextInt(20),r.nextInt(20)));
+        Balls.add(new Ball(r.nextInt(width), r.nextInt(height),r.nextInt(20)+10,r.nextInt(20)+10));
     }
 
     /**
-     * This method is used to adjust the position of the ball when the tick method is called
-     * @param b ball to be moved
+     * This method is used to adjust the position of the Ball when the tick method is called
+     * @param b Ball to be moved
      */
-    public void adjustBallPosition(ball b)
+    public void adjustBallPosition(Ball b)
     {
         /* probably crap but maybe i'll use it later somehow
-        Random rand = new Random(); //generate random speed changes as the ball bounces
+        Random rand = new Random(); //generate random speed changes as the Ball bounces
         int temp = 0;
         int reduction = rand.nextInt(1)-2; //range of [-4,0]
         temp = rand.nextInt(6)-10; //range of [-5,5]
@@ -150,7 +150,7 @@ public class pongAnimator implements Animator {
 
         if(playerLost(b))
         {
-            b.inPlay = false; //prevent the ball from being drawn while it awaits deletion
+            b.inPlay = false; //prevent the Ball from being drawn while it awaits deletion
             toBeDeleted.add(b); //add to list for removal
         }
         else if(paddleHit(b))
@@ -175,11 +175,11 @@ public class pongAnimator implements Animator {
     }
 
     /**
-     * check if a ball went out of play
-     * @param b ball to check
-     * @return true if ball reached far left side
+     * check if a Ball went out of play
+     * @param b Ball to check
+     * @return true if Ball reached far left side
      */
-    private boolean playerLost(ball b)
+    private boolean playerLost(Ball b)
     {
         if(b.getBallX() - b.getBallRad() <= 0)
         {
@@ -193,12 +193,12 @@ public class pongAnimator implements Animator {
 
     /**
      *
-     * @param b ball to check
+     * @param b Ball to check
      * @return
      */
-    private boolean paddleHit(ball b)
+    private boolean paddleHit(Ball b)
     {
-        //checking if ball's y and x coordinates are contained in paddle,
+        //checking if Ball's y and x coordinates are contained in paddle,
         if(b.getBallY() >= paddleY-paddleHeight/2 &&
                 b.getBallY() <= paddleY+paddleHeight/2 &&
                 b.getBallX() <= 40+b.getBallRad() &&
@@ -213,11 +213,11 @@ public class pongAnimator implements Animator {
     }
 
     /**
-     * Used to check if a ball hit the top or bottom wall
-     * @param b ball that is being checked
-     * @return true if ball collided with top or bottom wall
+     * Used to check if a Ball hit the top or bottom wall
+     * @param b Ball that is being checked
+     * @return true if Ball collided with top or bottom wall
      */
-    private boolean vertWallCollision(ball b)
+    private boolean vertWallCollision(Ball b)
     {
 
 
@@ -235,10 +235,10 @@ public class pongAnimator implements Animator {
     }
 
     /**
-     * Used to check if the ball hit the right side wall
+     * Used to check if the Ball hit the right side wall
      * @return true if there was a collision
      */
-    private boolean horzWallCollision(ball b)
+    private boolean horzWallCollision(Ball b)
     {
         if(b.getBallX()+ballRad >= width-wallWidth && b.getSpeedX() > 0)
         {
@@ -248,26 +248,26 @@ public class pongAnimator implements Animator {
     }
 
     /**
-     * Called by addButton listener. Adds ball with random starting properties to arrayList
+     * Called by addButton listener. Adds Ball with random starting properties to arrayList
      */
     public void addBall()
     {
         Random r = new Random();
-        balls.add(new ball(r.nextInt(width), r.nextInt(height),r.nextInt(20)+10,r.nextInt(20)+10));
+        Balls.add(new Ball(r.nextInt(width), r.nextInt(height),r.nextInt(20)+10,r.nextInt(20)+10));
     }
 
     /**
-     * Remove most recently added ball from arraylist. called by removeButton listener
+     * Remove most recently added Ball from arraylist. called by removeButton listener
      */
     public void removeBall()
     {
         try
         {
-            balls.remove(balls.size()-1);
+            Balls.remove(Balls.size()-1);
         }
         catch(Exception e)
         {
-            //don't do anything, but prevent crash from trying to remove when there are no balls
+            //don't do anything, but prevent crash from trying to remove when there are no Balls
         }
 
     }

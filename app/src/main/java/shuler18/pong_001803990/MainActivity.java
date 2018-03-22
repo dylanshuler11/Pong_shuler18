@@ -15,11 +15,11 @@ import android.widget.Spinner;
  * Enhancements added:
  * Spinner to set size of player's paddle
  * Buttons to add and remove balls from play(unlimited range, but it slows down around 50)
- * Game pauses if there are no balls on screen, waits till user adds ball
+ * Game pauses if there are no balls on screen, waits till user adds Ball
  */
 public class MainActivity extends AppCompatActivity {
 //todo don't allow player to delete balls when there are none in play
-    pongAnimator pa;
+    PongAnimator pa;
     /**
      * creates an AnimationSurface containing a TestAnimator.
      */
@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pong_main);
         //surface that is being drawn on
-        pa = new pongAnimator();
+        pa = new PongAnimator();
         // Connect the animation surface with the animator
         AnimationSurface mySurface = (AnimationSurface) this
                 .findViewById(R.id.animationSurface);

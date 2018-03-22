@@ -10,7 +10,7 @@ import java.util.Random;
  * Created by shule on 3/19/2018.
  */
 
-public class ball {
+public class Ball {
 
     private int ballX;
     private int ballY;
@@ -65,20 +65,20 @@ public class ball {
     }
 
     /**
-     * Constructor to create ball object
-     * @param x starting x position of ball
-     * @param y starting y position of ball
-     * @param sx speed of ball in x direction
-     * @param sy speed of ball in y direction
+     * Constructor to create Ball object
+     * @param x starting x position of Ball
+     * @param y starting y position of Ball
+     * @param sx speed of Ball in x direction
+     * @param sy speed of Ball in y direction
      */
-    public ball(int x, int y, int sx, int sy)
+    public Ball(int x, int y, int sx, int sy)
     {
         ballX = x;
 
         ballY = y;
         speedX = sx;
         speedY = sy;
-        //initilize the color of the ball
+        //initilize the color of the Ball
         redPaint = new Paint();
         redPaint.setColor(Color.RED);
     }
