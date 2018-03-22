@@ -1,12 +1,38 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
 
     <shuler18.pong_001803990.AnimationSurface
         android:id="@+id/animationSurface"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" >
-    </shuler18.pong_001803990.AnimationSurface>
+        android:layout_width="match_parent"
+        android:layout_height="701dp"></shuler18.pong_001803990.AnimationSurface>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/addBallButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add Ball" />
+
+        <Button
+            android:id="@+id/removeBallButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Remove Ball" />
+
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
 
 </LinearLayout>
     

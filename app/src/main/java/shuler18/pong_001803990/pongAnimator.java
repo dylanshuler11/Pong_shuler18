@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -14,70 +15,108 @@ import java.util.Random;
 public class pongAnimator implements Animator {
 
 
-    private int paddleHeight = 300;
-    private int paddleY = 1512/2 - paddleHeight/2;//middle position of paddle
+    private ArrayList<ball> balls = new ArrayList<>(); //stores list of all balls
+    private ArrayList<ball> toBeDeleted = new ArrayList<>(); //list of balls to be removed
+    private int paddleHeight = 300; //total height of paddle
+    private int paddleY = 1512/2 - paddleHeight/2;//middle position of paddle, starting at midpoint
     private int ballRad = 30; //radius of ball
-    private int wallWidth = 40;
-    private ball b;
+    private int wallWidth = 40; //width of walls drawn on edges
     private int height, width; //useable dimmensions of the board
-    boolean dimmensionsSet = true;
+
+    boolean dimmensionsSet = true; //used to get dimmensions on first run after the board is drawn
+
     @Override
-    public int interval() {
-        return 1;
+    public int interval()
+    {
+        return 5;
     }
 
     @Override
-    public int backgroundColor() {
+    public int backgroundColor()
+    {
         return Color.rgb(100, 100, 100);
     }
 
     @Override
-    public boolean doPause() {
+    public boolean doPause()
+    {
         return false;
     }
 
     @Override
-    public boolean doQuit() {
+    public boolean doQuit()
+    {
         return false;
     }
 
     @Override
     public void tick(Canvas g)
     {
-        //check if game is paused maybe?
-        //on first run, pass dimmensions to ball
-        if(dimmensionsSet)
-        {
-            b.setHeight(g.getHeight());
-            b.setWidth(g.getWidth());
-            dimmensionsSet = false;
-        }
 
-        adjustBallPosition(b);
+            //on first run, set board dimmension for use in hit detection
+            if (dimmensionsSet) {
+                height = g.getHeight();
+                width = g.getWidth();
+                dimmensionsSet = false; //prevent reentering loop
+            }
 
-        //draw 3 walls
-        Paint white = new Paint();
-        white.setColor(Color.WHITE);
-        g.drawRect(0,0,g.getWidth(),wallWidth,white);
-        g.drawRect(g.getWidth()-wallWidth,0,g.getWidth(),g.getHeight(),white);
-        g.drawRect(0,g.getHeight()-wallWidth,g.getWidth(),g.getHeight(),white);
+            drawWalls(g);
 
-        //draw the paddle
-        Paint black = new Paint();
-        black.setColor(Color.BLACK);
-        g.drawRect(0, paddleY+paddleHeight/2, 60,paddleY-paddleHeight/2,black);
+            //iterate through each ball in list and update its position and speed
+            for (ball b : balls) {
+                if (b.inPlay) {
+                    b.draw(g); // Draw the ball in the correct position.
+                    adjustBallPosition(b); //move ball
 
-        // Draw the ball in the correct position.
-        b.draw(g);
+                }
+            }
+
+        /*
+            External Citation:
+            3/21/2018
+
+            Couldn't remove balls from arrayList without causing a concurrentModificationException
+            Resource:
+            https://stackoverflow.com/questions/10431981/remove-elements-from-collection-while-iterating
+
+            solution:
+            used removeAll method as seen in top answer
+
+         */
+            balls.removeAll(toBeDeleted); //remove out of play balls
+            toBeDeleted.clear(); //empty list now that balls are removed
+
+
+
+
     }
 
+    /**
+     * Helper method to draw the walls and paddle
+     * @param g animationsurface that is being drawn on
+     */
+    public void drawWalls(Canvas g)
+    {
+        //draw 3 walls
+        Paint walls = new Paint();
+        walls.setColor(Color.BLUE);
+        g.drawRect(100,0,g.getWidth(),wallWidth,walls); //top wall
+        g.drawRect(g.getWidth()-wallWidth,0,g.getWidth(),g.getHeight(),walls); //left wall
+        g.drawRect(100,g.getHeight()-wallWidth,g.getWidth(),g.getHeight(),walls); //bottom wall
+
+        //draw the paddle
+        Paint paddle = new Paint();
+        paddle.setColor(Color.GREEN);
+        g.drawRect(0, paddleY+paddleHeight/2, 60,paddleY-paddleHeight/2,paddle);
 
 
+    }
 
     @Override
     public void onTouch(MotionEvent event) {
         //todo implement a way to prevent the paddle going past the edge of the wall
-        paddleY = (int)event.getY();
+
+        //paddleY = (int)event.getY(); turns out this isn't needed in part a
     }
 
 
@@ -87,71 +126,62 @@ public class pongAnimator implements Animator {
      */
     public void pongInit()
     {
-        //todo replace holder values with real values
         height = 1512;
         width = 2560;
         Random r = new Random();
-        b = new ball(r.nextInt(width), r.nextInt(height),r.nextInt(20),r.nextInt(20));
-
-
-        //todo figure out a way to get height and width parameters
-
+        balls.add(new ball(r.nextInt(width), r.nextInt(height),r.nextInt(20),r.nextInt(20)));
     }
 
     /**
      * This method is used to adjust the position of the ball when the tick method is called
+     * @param b ball to be moved
      */
     public void adjustBallPosition(ball b)
     {
+        /* probably crap but maybe i'll use it later somehow
         Random rand = new Random(); //generate random speed changes as the ball bounces
         int temp = 0;
-        int reduction = rand.nextInt(1)-4;
+        int reduction = rand.nextInt(1)-2; //range of [-4,0]
         temp = rand.nextInt(6)-10; //range of [-5,5]
-        boolean decrement = rand.nextInt(1) == 0 ? true : false;
 
-        //update position of ball
-        //todo fix setting of height and width in initial loop! 
-        if(b.getBallX() + b.getSpeedX() > width-wallWidth)
-        {
-            b.setBallX(width-wallWidth);
-        }
-        else
-        {
-            b.setBallX(b.getBallX() + b.getSpeedX());
-        }
-        b.setBallY(b.getBallY() + b.getSpeedY());
+        boolean slow = rand.nextBoolean(); //randomly decide whether to slow down after wall contact
+        */
 
-        //check if the ball has hit the bottom or top wall
-        if(paddleHit(b))
+
+        if(playerLost(b))
         {
-            b.setSpeedX(-b.getSpeedX() + reduction);
+            b.inPlay = false; //prevent the ball from being drawn while it awaits deletion
+            toBeDeleted.add(b); //add to list for removal
+        }
+        else if(paddleHit(b))
+        {
+            b.setSpeedX(-b.getSpeedX());
 
         }
         else if(vertWallCollision(b))
         {
-            b.setSpeedY(-b.getSpeedY() + temp);
-            if(b.getSpeedY() > 25)
-            {
-                b.setSpeedY(20);
-            }
+            b.setSpeedY(-b.getSpeedY());
+
         }
         else if(horzWallCollision(b))
         {
-            b.setSpeedX(-b.getSpeedX() + temp);
-            if(b.getSpeedX() > 25)
-            {
-                b.setSpeedX(20);
-            }
+            b.setSpeedX(-b.getSpeedX());
+
         }
+
+        b.setBallX(b.getBallX() + b.getSpeedX());
+        b.setBallY(b.getBallY() + b.getSpeedY());
+
     }
 
-    private boolean paddleHit(ball b)
+    /**
+     * check if a ball went out of play
+     * @param b ball to check
+     * @return true if ball reached far left side
+     */
+    private boolean playerLost(ball b)
     {
-
-        if(b.getBallY() >= paddleY-paddleHeight/2 &&
-                b.getBallY() <= paddleY+paddleHeight/2 &&
-                b.getBallX() <= 60+b.getBallRad() &&
-                b.getSpeedX() < 0)
+        if(b.getBallX() - b.getBallRad() <= 0)
         {
             return true;
         }
@@ -163,11 +193,33 @@ public class pongAnimator implements Animator {
 
     /**
      *
+     * @param b ball to check
+     * @return
+     */
+    private boolean paddleHit(ball b)
+    {
+        //checking if ball's y and x coordinates are contained in paddle,
+        if(b.getBallY() >= paddleY-paddleHeight/2 &&
+                b.getBallY() <= paddleY+paddleHeight/2 &&
+                b.getBallX() <= 40+b.getBallRad() &&
+                b.getSpeedX() < 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Used to check if a ball hit the top or bottom wall
+     * @param b ball that is being checked
      * @return true if ball collided with top or bottom wall
      */
     private boolean vertWallCollision(ball b)
     {
-        //todo fix ball going way over the top wall, bounces a little after the bottom wall
+
 
         //check if there was a collision with the top wall
         if(b.getBallY()-b.getBallRad() < wallWidth && b.getSpeedY() < 0)
@@ -183,8 +235,8 @@ public class pongAnimator implements Animator {
     }
 
     /**
-     *
-     * @return
+     * Used to check if the ball hit the right side wall
+     * @return true if there was a collision
      */
     private boolean horzWallCollision(ball b)
     {
@@ -195,12 +247,38 @@ public class pongAnimator implements Animator {
         return false;
     }
 
-
-    public void setHeight(int height) {
-        this.height = height;
+    /**
+     * Called by addButton listener. Adds ball with random starting properties to arrayList
+     */
+    public void addBall()
+    {
+        Random r = new Random();
+        balls.add(new ball(r.nextInt(width), r.nextInt(height),r.nextInt(20)+10,r.nextInt(20)+10));
     }
 
-    public void setWidth(int width) {
-        this.width = width;
+    /**
+     * Remove most recently added ball from arraylist. called by removeButton listener
+     */
+    public void removeBall()
+    {
+        try
+        {
+            balls.remove(balls.size()-1);
+        }
+        catch(Exception e)
+        {
+            //don't do anything, but prevent crash from trying to remove when there are no balls
+        }
+
     }
+
+    /**
+     * adjust the size of the player's paddle
+     * @param height size of the paddle
+     */
+    public void setPaddleHeight(int height)
+    {
+        this.paddleHeight = height;
+    }
+
 }

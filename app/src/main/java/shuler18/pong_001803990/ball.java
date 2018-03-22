@@ -20,6 +20,7 @@ public class ball {
     private int wallWidth = 50;
     private int speedX;
     private int speedY;
+    public boolean inPlay = true;
     Paint redPaint;
 
     public void setBallX(int ballX) {
@@ -92,7 +93,10 @@ public class ball {
 
     public void draw(Canvas g)
     {
-        g.drawCircle(ballX, ballY, 60, redPaint);
+        if(inPlay)
+        {
+            g.drawCircle(ballX, ballY, 60, redPaint);
+        }
     }
 
     public void setHeight(int height) {

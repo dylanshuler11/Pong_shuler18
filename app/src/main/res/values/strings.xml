@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">Pong_001803990</string>
+    <string name="app_name">pong_shuler18</string>
+
+    <string-array name="spinnerValues">
+        <item>Ez</item>
+        <item>Normal</item>
+        <item>Gg</item>
+    </string-array>
 </resources>
