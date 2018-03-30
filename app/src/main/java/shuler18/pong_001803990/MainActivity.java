@@ -1,5 +1,8 @@
 package shuler18.pong_001803990;
 
+import android.content.res.AssetManager;
+import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -8,14 +11,24 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 
+import java.util.Locale;
+
 /**
  * @author Dylan Shuler
  * Created on 3/18/2018
  *
  * Enhancements added:
+ *
+ * Part A:
  * Spinner to set size of player's paddle
  * Buttons to add and remove balls from play(unlimited range, but it slows down around 50)
  * Game pauses if there are no balls on screen, waits till user adds Ball
+ *
+ * Part B:
+ * Mimicked Atari Pong by removing right wall and adding ai 15%
+ * Added sound effects from Atari Pong 5%
+ * Added Scoring System 5%
+ *
  */
 public class MainActivity extends AppCompatActivity {
 //todo don't allow player to delete balls when there are none in play
@@ -32,9 +45,11 @@ public class MainActivity extends AppCompatActivity {
         // Connect the animation surface with the animator
         AnimationSurface mySurface = (AnimationSurface) this
                 .findViewById(R.id.animationSurface);
+
         //setup listener for add button
         Button add = (Button)findViewById(R.id.addBallButton);
         add.setOnClickListener(new addButtonListener());
+
         //setup listener for remove button
         Button remove = (Button)findViewById(R.id.removeBallButton);
         remove.setOnClickListener(new removeButtonListener());
@@ -47,6 +62,22 @@ public class MainActivity extends AppCompatActivity {
 
         mySurface.setAnimator(pa);
 
+        /*
+            EXTERNAL CITATION
+            3/25/2018
+            problem: No idea how to play audio
+            resource: https://stackoverflow.com/questions/18678873/android-button-click-to-play-music-click-again-to-stop-music
+
+            solution: created a mediaplayer as suggested in SO post
+         */
+        MediaPlayer mp = MediaPlayer.create(this, R.raw.player_paddle_effect);
+        pa.addPlayerFx(mp);
+
+        MediaPlayer mp1 = MediaPlayer.create(this, R.raw.comp_paddle_fx);
+        pa.addCompFx(mp1);
+
+        Button reset = (Button)findViewById(R.id.resetButton);
+        reset.setOnClickListener(new resetButtonListener());
 
 
     }
@@ -106,5 +137,10 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View button) {
             pa.removeBall();
         }
+    }
+
+    private class resetButtonListener implements View.OnClickListener
+    {
+        public void onClick(View button) { pa.resetScores();}
     }
 }

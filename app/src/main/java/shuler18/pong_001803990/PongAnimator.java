@@ -3,6 +3,8 @@ package shuler18.pong_001803990;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
@@ -18,23 +20,30 @@ public class PongAnimator implements Animator {
     private ArrayList<Ball> Balls = new ArrayList<>(); //stores list of all Balls
     private ArrayList<Ball> toBeDeleted = new ArrayList<>(); //list of Balls to be removed
     private int paddleHeight = 300; //total height of paddle
-    private int paddleY = 1512/2 - paddleHeight/2;//middle position of paddle, starting at midpoint
+    private int playerPaddleY = 1512/2 - paddleHeight/2;//middle position of paddle, starting at midpoint
+    private int compPaddleY = 1512/2 - 150; //comp's paddle size is fixed
     private int ballRad = 30; //radius of Ball
     private int wallWidth = 40; //width of walls drawn on edges
     private int height, width; //useable dimmensions of the board
-
+    private int p1Score=0, p2Score=0; //keep track of the game's score
+    private int aiSpeed;
+    private int aiDefaultSpeed = 5;
     boolean dimmensionsSet = true; //used to get dimmensions on first run after the board is drawn
+
+    MediaPlayer playerMp;
+    MediaPlayer compMp;
 
     @Override
     public int interval()
+
     {
-        return 5;
+        return 3;
     }
 
     @Override
     public int backgroundColor()
     {
-        return Color.rgb(100, 100, 100);
+        return Color.rgb(0, 0, 0);
     }
 
     @Override
@@ -49,6 +58,10 @@ public class PongAnimator implements Animator {
         return false;
     }
 
+    /**
+     * The tick method is called to redraw the canvas at the start of a new frame
+     * @param g canvas being drawn on
+     */
     @Override
     public void tick(Canvas g)
     {
@@ -68,6 +81,35 @@ public class PongAnimator implements Animator {
                     b.draw(g); // Draw the Ball in the correct position.
                     adjustBallPosition(b); //move Ball
 
+                }
+                //There is a smart ai used if there is only one ball in play
+                if(Balls.size() == 1)
+                {
+                    aiSpeed = (int)(b.getSpeedY() * .8); //scale speed to allow ai to miss
+                    compPaddleY += (aiSpeed); //increment location of paddle
+
+                    if(compPaddleY+150 >= height)
+                    {
+                        compPaddleY = height-150;
+                    }
+                    else if(compPaddleY-150 <= 0)
+                    {
+                        compPaddleY = 150;
+                    }
+                }
+                else if(Balls.size() != 0 && Balls.size() > 1) //ai simply moves up and down
+                {
+                    compPaddleY += aiDefaultSpeed;
+                    if(compPaddleY+150 >= height)
+                    {
+                        compPaddleY = height-150;
+                        aiDefaultSpeed = -aiDefaultSpeed;
+                    }
+                    else if(compPaddleY-150 <= 0)
+                    {
+                        compPaddleY = 150;
+                        aiDefaultSpeed = -aiDefaultSpeed;
+                    }
                 }
             }
 
@@ -91,32 +133,64 @@ public class PongAnimator implements Animator {
 
     }
 
+
+
     /**
-     * Helper method to draw the walls and paddle
+     * Helper method to draw the board and paddles
      * @param g animationsurface that is being drawn on
      */
     public void drawWalls(Canvas g)
     {
-        //draw 3 walls
-        Paint walls = new Paint();
-        walls.setColor(Color.BLUE);
-        g.drawRect(100,0,g.getWidth(),wallWidth,walls); //top wall
-        g.drawRect(g.getWidth()-wallWidth,0,g.getWidth(),g.getHeight(),walls); //left wall
-        g.drawRect(100,g.getHeight()-wallWidth,g.getWidth(),g.getHeight(),walls); //bottom wall
 
-        //draw the paddle
-        Paint paddle = new Paint();
-        paddle.setColor(Color.GREEN);
-        g.drawRect(0, paddleY+paddleHeight/2, 60,paddleY-paddleHeight/2,paddle);
+        Paint white = new Paint();
+        white.setColor(Color.WHITE);
 
+        //draw the center line
+        int temp = wallWidth;
+        int h = height/40;
+        for(int i = 0; i < 10; i++)
+        {
+
+            g.drawRect(width/2-15,temp,width/2+15,temp+2*h,white);
+            temp += 4*h;
+
+        }
+
+
+        //draw player's paddle
+        g.drawRect(0, playerPaddleY +paddleHeight/2, 60, playerPaddleY -paddleHeight/2,white);
+
+        //draw computer's paddle
+        g.drawRect(width-60, compPaddleY +150, width, compPaddleY-150,white);
+
+        white.setTextSize(50); //make it so the scores can actually be seen
+
+        //draw player's scores
+        g.drawText(""+p1Score,width/4,height/8,white); //p1 score
+        g.drawText(""+p2Score,(3*width)/4,height/8,white); //p2 score
 
     }
 
+    /**
+     * Called when the user wants to move their paddle location
+     * @param event a MotionEvent describing the touch
+     */
     @Override
-    public void onTouch(MotionEvent event) {
-        //todo implement a way to prevent the paddle going past the edge of the wall
-
-        //paddleY = (int)event.getY(); turns out this isn't needed in part a
+    public void onTouch(MotionEvent event)
+    {
+        int userClick = (int)event.getY();
+        if(userClick+paddleHeight/2 > height) //user clicked below the playing field
+        {
+            playerPaddleY = height-paddleHeight/2;
+        }
+        else if(userClick-paddleHeight/2 < 0) //user clicked above playing field
+        {
+            playerPaddleY = 0+paddleHeight/2;
+        }
+        else //valid click
+        {
+            playerPaddleY = userClick;
+        }
     }
 
 
@@ -128,8 +202,7 @@ public class PongAnimator implements Animator {
     {
         height = 1512;
         width = 2560;
-        Random r = new Random();
-        Balls.add(new Ball(r.nextInt(width), r.nextInt(height),r.nextInt(20)+10,r.nextInt(20)+10));
+        addBall();
     }
 
     /**
@@ -138,36 +211,35 @@ public class PongAnimator implements Animator {
      */
     public void adjustBallPosition(Ball b)
     {
-        /* probably crap but maybe i'll use it later somehow
-        Random rand = new Random(); //generate random speed changes as the Ball bounces
-        int temp = 0;
-        int reduction = rand.nextInt(1)-2; //range of [-4,0]
-        temp = rand.nextInt(6)-10; //range of [-5,5]
-
-        boolean slow = rand.nextBoolean(); //randomly decide whether to slow down after wall contact
-        */
-
-
         if(playerLost(b))
         {
             b.inPlay = false; //prevent the Ball from being drawn while it awaits deletion
             toBeDeleted.add(b); //add to list for removal
+            p2Score += 1; //add one to the second player's score
+        }
+        else if(compLost(b))
+        {
+            b.inPlay = false;
+            toBeDeleted.add(b);
+            p1Score += 1;
         }
         else if(paddleHit(b))
         {
             b.setSpeedX(-b.getSpeedX());
+            try {playerMp.start(); } catch(Exception e) {}; //prevent a crash if the MP hits a snag
 
+        }
+        else if(compPaddleHit(b))
+        {
+            b.setSpeedX(-b.getSpeedX());
+            try {compMp.start(); } catch(Exception e) {};
         }
         else if(vertWallCollision(b))
         {
             b.setSpeedY(-b.getSpeedY());
 
         }
-        else if(horzWallCollision(b))
-        {
-            b.setSpeedX(-b.getSpeedX());
 
-        }
 
         b.setBallX(b.getBallX() + b.getSpeedX());
         b.setBallY(b.getBallY() + b.getSpeedY());
@@ -199,8 +271,8 @@ public class PongAnimator implements Animator {
     private boolean paddleHit(Ball b)
     {
         //checking if Ball's y and x coordinates are contained in paddle,
-        if(b.getBallY() >= paddleY-paddleHeight/2 &&
-                b.getBallY() <= paddleY+paddleHeight/2 &&
+        if(b.getBallY() >= playerPaddleY -paddleHeight/2 &&
+                b.getBallY() <= playerPaddleY +paddleHeight/2 &&
                 b.getBallX() <= 40+b.getBallRad() &&
                 b.getSpeedX() < 0)
         {
@@ -222,12 +294,12 @@ public class PongAnimator implements Animator {
 
 
         //check if there was a collision with the top wall
-        if(b.getBallY()-b.getBallRad() < wallWidth && b.getSpeedY() < 0)
+        if(b.getBallY()-b.getBallRad() < 0 && b.getSpeedY() < 0)
         {
             return true;
         }
         //check bottom wall
-        else if(b.getBallY()+b.getBallRad() > height-wallWidth && b.getSpeedY() > 0)
+        else if(b.getBallY()+b.getBallRad() > height && b.getSpeedY() > 0)
         {
             return true;
         }
@@ -238,13 +310,38 @@ public class PongAnimator implements Animator {
      * Used to check if the Ball hit the right side wall
      * @return true if there was a collision
      */
-    private boolean horzWallCollision(Ball b)
+    private boolean compPaddleHit(Ball b)
     {
-        if(b.getBallX()+ballRad >= width-wallWidth && b.getSpeedX() > 0)
+        //checking if Ball's y and x coordinates are contained in paddle,
+        if(b.getBallY() >= compPaddleY - 150 &&
+                b.getBallY() <= compPaddleY + 150 &&
+                b.getBallX()+b.getBallRad()+60 >= width &&
+                b.getSpeedX() > 0)
         {
             return true;
         }
-        return false;
+        else
+        {
+            return false;
+        }
+
+    }
+
+    /**
+     * check if the human player scored
+     * @param b ball being checked
+     * @return true if player scored, false otherwise
+     */
+    private boolean compLost(Ball b)
+    {
+        if(b.getBallX() + b.getBallRad() >= width)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**
@@ -253,7 +350,21 @@ public class PongAnimator implements Animator {
     public void addBall()
     {
         Random r = new Random();
-        Balls.add(new Ball(r.nextInt(width), r.nextInt(height),r.nextInt(20)+10,r.nextInt(20)+10));
+        int sx, sy, xMod, yMod;
+        xMod = yMod = 1;
+        if(r.nextInt(2) == 1)
+        {
+            xMod = -1;
+
+        }
+        if(r.nextInt(2) == 1)
+        {
+            yMod = -1;
+        }
+        sx = (r.nextInt(20)+10) * xMod;
+        sy = (r.nextInt(20)+10) * yMod;
+
+        Balls.add(new Ball(r.nextInt(600)+1000, r.nextInt(550)+400,sx,sy));
     }
 
     /**
@@ -272,6 +383,12 @@ public class PongAnimator implements Animator {
 
     }
 
+    public void resetScores()
+    {
+        p1Score = 0;
+        p2Score = 0;
+    }
+
     /**
      * adjust the size of the player's paddle
      * @param height size of the paddle
@@ -280,5 +397,21 @@ public class PongAnimator implements Animator {
     {
         this.paddleHeight = height;
     }
+
+    /**
+     * Configures the media player used to play noise when the player's paddle hits a ball
+     * @param m mediaplayer using the player_paddle_effect audio file
+     */
+    public void addPlayerFx(MediaPlayer m)
+    {
+        playerMp = m;
+    }
+
+    public void addCompFx(MediaPlayer m)
+    {
+        compMp = m;
+    }
+
+
 
 }

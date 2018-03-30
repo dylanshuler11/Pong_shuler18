@@ -4,8 +4,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
-import java.util.Random;
-
 /**
  * Created by shule on 3/19/2018.
  */
@@ -21,21 +19,25 @@ public class Ball {
     private int speedX;
     private int speedY;
     public boolean inPlay = true;
-    Paint redPaint;
+    Paint whitePaint;
 
-    public void setBallX(int ballX) {
+    public void setBallX(int ballX)
+    {
         this.ballX = ballX;
     }
 
-    public void setBallY(int ballY) {
+    public void setBallY(int ballY)
+    {
         this.ballY = ballY;
     }
 
-    public void setSpeedX(int speedX) {
+    public void setSpeedX(int speedX)
+    {
         this.speedX = speedX;
     }
 
-    public void setSpeedY(int speedY) {
+    public void setSpeedY(int speedY)
+    {
         this.speedY = speedY;
     }
 
@@ -44,23 +46,28 @@ public class Ball {
         return ballX;
     }
 
-    public int getBallY() {
+    public int getBallY()
+    {
         return ballY;
     }
 
-    public int getBallRad() {
+    public int getBallRad()
+    {
         return ballRad;
     }
 
-    public int getWallWidth() {
+    public int getWallWidth()
+    {
         return wallWidth;
     }
 
-    public int getSpeedX() {
+    public int getSpeedX()
+    {
         return speedX;
     }
 
-    public int getSpeedY() {
+    public int getSpeedY()
+    {
         return speedY;
     }
 
@@ -79,8 +86,8 @@ public class Ball {
         speedX = sx;
         speedY = sy;
         //initilize the color of the Ball
-        redPaint = new Paint();
-        redPaint.setColor(Color.RED);
+        whitePaint = new Paint();
+        whitePaint.setColor(Color.WHITE);
     }
 
 
@@ -95,7 +102,7 @@ public class Ball {
     {
         if(inPlay)
         {
-            g.drawCircle(ballX, ballY, 60, redPaint);
+            g.drawCircle(ballX, ballY, 60, whitePaint);
         }
     }
 
